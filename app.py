@@ -423,7 +423,10 @@ def extract_pdf_text(uploaded):
 
 
 def safe_public_url(value):
-    parsed = urlparse(value)
+    raw = (value or "").strip().lstrip("/")
+    if not raw.startswith(("http://", "https://")):
+        raw = "https://" + raw
+    parsed = urlparse(raw)
     if parsed.scheme not in {"http", "https"} or not parsed.hostname:
         raise ValueError("Enter a valid public http(s) portfolio URL.")
     hostname = parsed.hostname.lower().rstrip(".")
@@ -435,7 +438,7 @@ def safe_public_url(value):
             raise ValueError("Portfolio URLs must point to a public website.")
     except socket.gaierror:
         raise ValueError("The portfolio website could not be found.")
-    return value
+    return raw
 
 
 def extract_website_text(value):

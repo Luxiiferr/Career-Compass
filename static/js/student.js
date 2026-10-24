@@ -232,6 +232,14 @@ async function analyzePortfolio() {
   
   var file = portfolio && portfolio.files && portfolio.files[0];
   var url = website ? website.value.trim() : '';
+  if (url) {
+    // Clean accidental leading slashes or missing protocol
+    url = url.replace(/^\/+/, '');
+    if (!/^https?:\/\//i.test(url)) {
+      url = 'https://' + url;
+    }
+    if (website) website.value = url;
+  }
   if (!file && !url) { 
     if (portfolio) { portfolio.classList.add('is-invalid'); portfolio.focus(); } 
     return false; 
