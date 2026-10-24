@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Dashboard — CareerCompass Student</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/shared.css" />
+  <link rel="stylesheet" href="/static/css/student.css" />
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-brand d-flex align-items-center gap-2">
+    <img src="{{ url_for('careercompass_logo') }}" alt="CareerCompass logo" class="brand-logo-full" style="height:36px" />
+    <div><div class="fw-bold small lh-1">CareerCompass</div><div class="text-secondary" style="font-size:.65rem;margin-top:2px">Student Portal</div></div>
+  </div>
+  <div class="sidebar-user">
+    <div class="d-flex align-items-center gap-2">
+      <div class="sidebar-avatar">MS</div>
+      <div><div class="fw-semibold" style="font-size:.78rem">Maria Santos</div><div class="text-secondary" style="font-size:.68rem">BSIT-3A · 3rd Year</div></div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-label">Menu</div>
+    <a class="nav-item-cc active" data-page="dashboard.html" href="dashboard.html"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+    <a class="nav-item-cc" data-page="assessment.html" href="assessment.html"><i class="bi bi-clipboard-check"></i> Career Assessment</a>
+    <a class="nav-item-cc" data-page="recommendation.html" href="recommendation.html"><i class="bi bi-award"></i> Recommendation <span class="dot"></span></a>
+    <a class="nav-item-cc" data-page="history.html" href="history.html"><i class="bi bi-clock-history"></i> History</a>
+    <a class="nav-item-cc" data-page="profile.html" href="profile.html"><i class="bi bi-person"></i> Profile</a>
+  </nav>
+  <div class="sidebar-footer"><a class="nav-item-cc" href="../index.html" style="color:#EF4444!important"><i class="bi bi-box-arrow-left" style="color:#EF4444"></i> Logout</a></div>
+</div>
+
+<!-- Main -->
+<div class="sidebar-main">
+  <div class="topbar">
+    <div><div class="fw-bold" style="font-size:1.05rem">Dashboard</div><div class="text-secondary small">Welcome back, Maria! Here is your career overview.</div></div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-sm position-relative" style="background:#F9FAFB;border:1px solid var(--border);border-radius:8px"><i class="bi bi-bell" style="font-size:1rem"></i><span class="position-absolute" style="top:6px;right:7px;width:7px;height:7px;background:var(--indigo);border-radius:50%"></span></button>
+      <div class="topbar-avatar">MS</div>
+    </div>
+  </div>
+
+  <div class="p-4">
+    <!-- Alert -->
+    <div class="d-flex align-items-start gap-3 p-4 rounded-xl mb-4" style="background:var(--indigo-light);border:1px solid #C7D2FE">
+      <i class="bi bi-info-circle text-indigo fs-5 mt-1 flex-shrink-0"></i>
+      <div class="flex-grow-1"><div class="fw-semibold text-indigo small">Assessment Available</div><div class="text-indigo small" style="opacity:.8">A new career assessment cycle is open. Complete your assessment to get an updated recommendation.</div></div>
+      <a href="assessment.html" class="btn btn-sm btn-outline-indigo">Start Now</a>
+    </div>
+
+    <!-- Stats row -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3 d-flex"><div class="card-cc p-4 h-100 w-100"><div class="stat-icon mb-3" style="background:#ECFDF5;color:#065F46"><i class="bi bi-check-circle fs-5"></i></div><div class="text-secondary small fw-semibold text-uppercase" style="letter-spacing:.06em">Assessments Completed</div><div class="fw-bold mt-1" style="font-size:1.6rem" id="dashboard-assessment-count">0</div><div class="text-secondary mt-auto" style="font-size:.75rem">Latest result shown below</div></div></div>
+      <div class="col-md-3 d-flex"><div class="card-cc p-4 h-100 w-100"><div class="stat-icon mb-3 bg-indigo-light"><i class="bi bi-award fs-5 text-indigo"></i></div><div class="text-secondary small fw-semibold text-uppercase" style="letter-spacing:.06em">Latest Recommendation</div><div class="fw-bold mt-1" style="font-size:1.4rem" id="dashboard-latest-career">Not available</div><div class="text-secondary mt-auto" style="font-size:.75rem" id="dashboard-latest-date">Complete an assessment</div></div></div>
+      <div class="col-md-3 d-flex"><div class="card-cc p-4 h-100 w-100"><div class="stat-icon mb-3" style="background:#F5F3FF;color:#6D28D9"><i class="bi bi-bullseye fs-5"></i></div><div class="text-secondary small fw-semibold text-uppercase" style="letter-spacing:.06em">Recommendation Score</div><div class="fw-bold mt-1" style="font-size:1.6rem" id="dashboard-stat-score">&mdash;</div><div class="text-secondary mt-auto" style="font-size:.75rem" id="dashboard-stat-score-caption">Complete an assessment</div></div></div>
+      <div class="col-md-3 d-flex"><div class="card-cc p-4 h-100 w-100"><div class="stat-icon mb-3" style="background:#FFFBEB;color:#B45309"><i class="bi bi-star fs-5"></i></div><div class="text-secondary small fw-semibold text-uppercase" style="letter-spacing:.06em">Recommended Career</div><div class="fw-bold mt-1" style="font-size:1.4rem" id="dashboard-stat-career">Not available</div><div class="text-secondary mt-auto" style="font-size:.75rem" id="dashboard-stat-career-caption">Complete an assessment</div></div></div>
+    </div>
+
+    <!-- Recommendation + Skill snapshot -->
+    <div class="row g-4">
+      <div class="col-md-8">
+        <div class="card-cc p-4">
+          <div class="d-flex justify-content-between align-items-center mb-4"><h6 class="fw-semibold mb-0">Latest Recommendation</h6><a href="recommendation.html" class="text-indigo small">View details</a></div>
+          <div class="d-flex align-items-center gap-4">
+            <div class="position-relative flex-shrink-0">
+              <svg class="progress-ring" width="110" height="110" style="transform:rotate(-90deg)"><circle class="track" cx="55" cy="55" r="45" fill="none" stroke-width="9"/><circle class="fill" cx="55" cy="55" r="45" fill="none" stroke-width="9" stroke-dasharray="283" stroke-dashoffset="23"/></svg>
+              <div class="position-absolute top-50 start-50 translate-middle text-center"><div class="fw-bold" style="font-size:1.4rem;line-height:1" id="dashboard-match-score">0%</div><div class="text-secondary" style="font-size:.65rem">Match</div></div>
+            </div>
+            <div class="flex-grow-1">
+              <div class="text-indigo fw-semibold small text-uppercase mb-1" style="letter-spacing:.07em">Recommended Career</div>
+              <div class="fw-bold mb-3" style="font-size:1.4rem" id="dashboard-recommended-career">Awaiting assessment</div>
+              <div class="d-flex flex-column gap-2" id="dashboard-reason-list">
+                <div class="small text-secondary">Complete your assessment to receive a personalized recommendation.</div>
+              </div>
+              <div class="d-flex gap-2 mt-3">
+                <a href="recommendation.html" class="btn btn-sm btn-indigo">View Full Report</a>
+                <a href="assessment.html" class="btn btn-sm" style="border:1px solid var(--border)">Retake</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card-cc p-4">
+          <h6 class="fw-semibold mb-4">Skill Snapshot</h6>
+          <div class="d-flex flex-column gap-3" id="dashboard-skills">
+            <div><div class="d-flex justify-content-between mb-1"><span class="small text-secondary">Overall Match</span><span class="small fw-semibold">—</span></div><div class="skill-bar"><div class="fill" style="width:0%"></div></div></div>
+            <div><div class="d-flex justify-content-between mb-1"><span class="small text-secondary">Portfolio Similarity</span><span class="small fw-semibold">—</span></div><div class="skill-bar"><div class="fill" style="width:0%"></div></div></div>
+            <div><div class="d-flex justify-content-between mb-1"><span class="small text-secondary">Interest Alignment</span><span class="small fw-semibold">—</span></div><div class="skill-bar"><div class="fill" style="width:0%"></div></div></div>
+            <div><div class="d-flex justify-content-between mb-1"><span class="small text-secondary">Academic Readiness</span><span class="small fw-semibold">—</span></div><div class="skill-bar"><div class="fill" style="width:0%"></div></div></div>
+          </div>
+          <div class="mt-4 pt-3 border-top"><div class="text-secondary small mb-2">Alternatives</div><div class="d-flex flex-wrap gap-1" id="dashboard-alternatives"><span class="badge-gray">Pending</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Adviser Feedback -->
+    <div class="card-cc p-4 mt-4">
+      <h6 class="fw-semibold mb-3">Adviser Feedback</h6>
+      <div id="dashboard-notes">
+        <div class="text-secondary small py-3">Loading feedback notes...</div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card-cc p-4 mt-4">
+      <h6 class="fw-semibold mb-3">Recent Activity</h6>
+      <div id="dashboard-activity">
+        <div class="d-flex align-items-start gap-3 py-3 border-bottom"><div class="stat-icon flex-shrink-0 bg-indigo-light"><i class="bi bi-clipboard-check text-indigo small"></i></div><div><div class="small fw-medium">Completed Career Assessment</div><div class="text-secondary" style="font-size:.75rem">2 days ago</div></div></div>
+        <div class="d-flex align-items-start gap-3 py-3 border-bottom"><div class="stat-icon flex-shrink-0" style="background:#EFF6FF"><i class="bi bi-eye text-primary small"></i></div><div><div class="small fw-medium">Viewed Software Engineering career details</div><div class="text-secondary" style="font-size:.75rem">3 days ago</div></div></div>
+        <div class="d-flex align-items-start gap-3 py-3 border-bottom"><div class="stat-icon flex-shrink-0" style="background:#ECFDF5"><i class="bi bi-person text-success small"></i></div><div><div class="small fw-medium">Updated profile information</div><div class="text-secondary" style="font-size:.75rem">5 days ago</div></div></div>
+        <div class="d-flex align-items-start gap-3 py-3"><div class="stat-icon flex-shrink-0 bg-indigo-light"><i class="bi bi-clipboard-check text-indigo small"></i></div><div><div class="small fw-medium">Retook assessment (Attempt 2)</div><div class="text-secondary" style="font-size:.75rem">June 20, 2025</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/student.js"></script>
+</body>
+</html>

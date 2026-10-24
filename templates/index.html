@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CareerCompass — IT Career Path Recommendation System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/shared.css" />
+  <style>
+    .landing-nav { position:fixed;top:0;left:0;right:0;z-index:999;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 max(20px,calc((100vw - 1200px)/2));height:72px;display:flex;align-items:center;justify-content:space-between; }
+    .hero-gradient { background:radial-gradient(ellipse 70% 65% at 80% 8%,rgba(124,58,237,.13) 0%,transparent 70%),linear-gradient(180deg,#fff 0%,#F8F7FF 100%); }
+    .floating-card { position:absolute;background:rgba(255,255,255,.96);border-radius:14px;border:1px solid rgba(99,102,241,.16);box-shadow:0 12px 30px rgba(49,46,129,.12);padding:12px 16px; }
+    .feature-card { background:#fff;border:1px solid #E9E7FF;border-radius:16px;padding:28px 24px;box-shadow:0 4px 14px rgba(30,27,75,.04);height:100%; }
+    .step-how { text-align:center;position:relative; }
+    .step-how .step-num { width:68px;height:68px;border-radius:18px;background:linear-gradient(135deg,#4F46E5,#7C3AED);display:flex;align-items:center;justify-content:center;font-size:1.45rem;color:#fff;margin:0 auto 18px;box-shadow:0 10px 22px rgba(79,70,229,.2); }
+    .footer-dark { background:#111827;color:#C7CEDB; }
+    .footer-dark a { color:#C7CEDB!important; } .footer-dark a:hover { color:#fff!important; }
+    .hero-media { background:linear-gradient(135deg,#EDE9FE,#F5F3FF);border-radius:24px;padding:16px;box-shadow:0 20px 40px rgba(79,70,229,.1); }
+    .landing-stat { padding-left:18px;border-left:2px solid #C7D2FE; } .landing-stat:first-child { padding-left:0;border-left:0; }
+    @media (max-width:991px){ .hero-gradient{padding:108px 0 64px!important}.floating-card{display:none}.hero-media{margin-top:8px}.landing-nav{padding:0 20px} }
+    @media (max-width:575px){ .landing-nav{height:64px}.brand-logo-full{height:38px!important}.hero-gradient{padding-top:96px!important}.landing-stat{padding-left:12px}.landing-stat .fs-4{font-size:1.25rem!important}.footer-bottom{flex-direction:column;gap:8px;align-items:flex-start!important} }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  </style>
+</head>
+<body>
+
+<nav class="landing-nav">
+  <div class="d-flex align-items-center gap-2">
+    <img src="{{ url_for('careercompass_logo') }}" alt="CareerCompass logo" class="brand-logo-full" style="height:44px" />
+  </div>
+  <div class="d-flex gap-2">
+    <a href="login.html" class="btn btn-sm text-secondary fw-medium">Sign In</a>
+    <a href="login.html" class="btn btn-sm btn-indigo px-3">Get Started</a>
+  </div>
+</nav>
+
+<section class="hero-gradient" style="padding:136px 0 88px">
+  <div class="container" style="max-width:1200px">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-6">
+        <span class="badge-indigo mb-3 d-inline-flex align-items-center gap-2">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--indigo);animation:pulse 2s infinite" class="d-inline-block"></span>
+          BSIT Capstone Project — Midterm Prototype
+        </span>
+        <h1 class="fw-bold lh-sm mb-4" style="font-size:2.8rem;letter-spacing:-.02em">
+          Discover the IT career path that <span class="text-indigo">matches your skills.</span>
+        </h1>
+        <p class="text-secondary mb-4 fs-5" style="line-height:1.7;max-width:480px">
+          CareerCompass uses semantic portfolio matching, career interests, and GWA readiness to help you explore IT career paths aligned with your profile.
+        </p>
+        <div class="d-flex gap-3 flex-wrap mb-5">
+          <a href="login.html" class="btn btn-indigo px-4 py-2 d-flex align-items-center gap-2">Start Assessment <i class="bi bi-arrow-right"></i></a>
+          <a href="login.html" class="btn d-flex align-items-center gap-1 text-secondary fw-medium">Faculty Login <i class="bi bi-chevron-right"></i></a>
+        </div>
+        <div class="d-flex gap-4">
+          <div class="landing-stat"><div class="fw-bold fs-4">5</div><div class="text-secondary small">Career Tracks</div></div>
+          <div class="landing-stat"><div class="fw-bold fs-4">SBERT</div><div class="text-secondary small">Semantic Matching</div></div>
+          <div class="landing-stat"><div class="fw-bold fs-4">Web</div><div class="text-secondary small">Student &amp; Faculty Portals</div></div>
+        </div>
+      </div>
+      <div class="col-lg-6 position-relative">
+        <div class="hero-media">
+          <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=640&h=400&fit=crop&auto=format"
+            alt="BSIT students" class="img-fluid rounded-2xl shadow" style="object-fit:cover;height:340px;width:100%" />
+        </div>
+        <div class="floating-card" style="bottom:-20px;left:-20px">
+          <div class="d-flex align-items-center gap-2">
+            <div class="stat-icon" style="background:#ECFDF5;color:#065F46"><i class="bi bi-check-circle-fill"></i></div>
+            <div><div class="fw-semibold small">Personalized guidance</div><div class="text-secondary" style="font-size:.75rem">Explore your best-fit IT paths</div></div>
+          </div>
+        </div>
+        <div class="floating-card" style="top:-16px;right:-16px">
+          <div class="small text-secondary mb-1">Skills Assessed</div>
+          <div class="d-flex gap-1"><span class="badge-indigo">Python</span><span class="badge-indigo">Java</span><span class="badge-indigo">SQL</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding:80px 0;background:#F9FAFB">
+  <div class="container" style="max-width:1200px">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold fs-2 mb-2">Everything you need to plan your IT career</h2>
+      <p class="text-secondary">Built for BSIT students and faculty of the College of Computer Science.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-3"><div class="feature-card"><div class="stat-icon bg-indigo-light mb-3"><i class="bi bi-cpu fs-5 text-indigo"></i></div><h5 class="fw-semibold mb-2">Semantic Matching</h5><p class="text-secondary small mb-0">Portfolio text is compared with predefined IT career-track profiles using Sentence-BERT semantic similarity.</p></div></div>
+      <div class="col-md-3"><div class="feature-card"><div class="stat-icon bg-indigo-light mb-3"><i class="bi bi-clipboard-check fs-5 text-indigo"></i></div><h5 class="fw-semibold mb-2">Portfolio-Based Assessment</h5><p class="text-secondary small mb-0">Submit a text-based PDF portfolio, public portfolio website, or both, then share your interests and GWA.</p></div></div>
+      <div class="col-md-3"><div class="feature-card"><div class="stat-icon bg-indigo-light mb-3"><i class="bi bi-bar-chart fs-5 text-indigo"></i></div><h5 class="fw-semibold mb-2">Faculty Dashboard</h5><p class="text-secondary small mb-0">Faculty members can review submitted assessments, recommendation distributions, and student progress.</p></div></div>
+      <div class="col-md-3"><div class="feature-card"><div class="stat-icon bg-indigo-light mb-3"><i class="bi bi-compass fs-5 text-indigo"></i></div><h5 class="fw-semibold mb-2">Career Exploration</h5><p class="text-secondary small mb-0">View a recommended career path with transparent supporting signals and alternative IT tracks to explore.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section style="padding:80px 0">
+  <div class="container" style="max-width:1200px">
+    <div class="text-center mb-5">
+      <h2 class="fw-bold fs-2 mb-2">How CareerCompass Works</h2>
+      <p class="text-secondary">Three simple steps to discover your ideal IT career path.</p>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-4 step-how"><div class="step-num"><i class="bi bi-folder2-open"></i></div><div class="text-indigo fw-bold small text-uppercase mb-2" style="letter-spacing:.1em">Step 01</div><h5 class="fw-bold mb-2">Share Your Portfolio</h5><p class="text-secondary small">Submit a readable portfolio PDF, public portfolio website, or both, then complete your academic and interest information.</p></div>
+      <div class="col-md-4 step-how"><div class="step-num"><i class="bi bi-cpu"></i></div><div class="text-indigo fw-bold small text-uppercase mb-2" style="letter-spacing:.1em">Step 02</div><h5 class="fw-bold mb-2">Semantic Analysis</h5><p class="text-secondary small">Sentence-BERT compares portfolio content with the defined IT career-track descriptions and combines relevant assessment inputs.</p></div>
+      <div class="col-md-4 step-how"><div class="step-num"><i class="bi bi-bullseye"></i></div><div class="text-indigo fw-bold small text-uppercase mb-2" style="letter-spacing:.1em">Step 03</div><h5 class="fw-bold mb-2">Review Your Guidance</h5><p class="text-secondary small">Explore your recommended career path, supporting signals, and alternative tracks for informed career planning.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer class="footer-dark py-5">
+  <div class="container" style="max-width:1200px">
+    <div class="row g-4">
+      <div class="col-md-5">
+        <div class="d-flex align-items-center gap-2 mb-3"><img src="{{ url_for('careercompass_logo') }}" alt="CareerCompass logo" class="brand-logo-full" style="height:32px" /></div>
+        <p class="small mb-3" style="max-width:340px;line-height:1.7">An NLP-based IT Career Path Recommendation System with E-Portfolio for BSIT students.</p>
+        <div class="d-flex flex-column gap-1 small"><span><i class="bi bi-geo-alt me-2"></i>College of Computer Science</span></div>
+      </div>
+      <div class="col-md-3 offset-md-1">
+        <div class="text-white fw-semibold small mb-3">System</div>
+        <ul class="list-unstyled small d-flex flex-column gap-2">
+          <li><a href="student/dashboard.html" class="text-secondary">Student Dashboard</a></li>
+          <li><a href="student/assessment.html" class="text-secondary">Career Assessment</a></li>
+          <li><a href="faculty/dashboard.html" class="text-secondary">Faculty Dashboard</a></li>
+          <li><a href="faculty/reports.html" class="text-secondary">Reports</a></li>
+        </ul>
+      </div>
+      <div class="col-md-3">
+        <div class="text-white fw-semibold small mb-3">About</div>
+        <ul class="list-unstyled small d-flex flex-column gap-2"><li><a href="#" class="text-secondary">About the Project</a></li><li><a href="#" class="text-secondary">Development Team</a></li><li><a href="#" class="text-secondary">Research Paper</a></li></ul>
+      </div>
+    </div>
+    <hr style="border-color:rgba(255,255,255,.1);margin:32px 0 16px" />
+    <div class="d-flex justify-content-between small footer-bottom"><span>© 2025–2026 CareerCompass. BSIT Capstone Project.</span><span>Powered by SBERT (Sentence-BERT)</span></div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

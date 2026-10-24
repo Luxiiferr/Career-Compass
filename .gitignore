@@ -1,0 +1,21 @@
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Local databases
+careercompass.db
+*.sqlite3
+*.db
+
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# VS Code workspace settings
+.vscode/

@@ -1,0 +1,7 @@
+Flask
+PyMuPDF
+requests
+beautifulsoup4
+sentence-transformers
+psycopg[binary]
+gunicorn

@@ -1,0 +1,7 @@
+/* Faculty Portal styles */
+.sidebar-user-faculty { background:#F5F3FF; }
+.sidebar-avatar-faculty { background:#DDD6FE; color:#5B21B6; }
+.chart-container { height:200px; position:relative; }
+.dist-bar-row { display:flex; align-items:center; gap:12px; }
+.dist-bar-row .label { font-size:.875rem; color:#6B7280; width:130px; flex-shrink:0; }
+.dist-bar-row .pct { font-size:.875rem; font-weight:600; width:32px; flex-shrink:0; }

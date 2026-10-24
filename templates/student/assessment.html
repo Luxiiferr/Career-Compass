@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Career Assessment — CareerCompass</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/shared.css" />
+  <link rel="stylesheet" href="/static/css/student.css" />
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-brand d-flex align-items-center gap-2">
+    <img src="{{ url_for('careercompass_logo') }}" alt="CareerCompass logo" class="brand-logo-full" style="height:36px" />
+    <div><div class="fw-bold small lh-1">CareerCompass</div><div class="text-secondary" style="font-size:.65rem;margin-top:2px">Student Portal</div></div>
+  </div>
+  <div class="sidebar-user">
+    <div class="d-flex align-items-center gap-2">
+      <div class="sidebar-avatar">MS</div>
+      <div><div class="fw-semibold" style="font-size:.78rem">Maria Santos</div><div class="text-secondary" style="font-size:.68rem">BSIT-3A · 3rd Year</div></div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="sidebar-label">Menu</div>
+    <a class="nav-item-cc" href="dashboard.html"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+    <a class="nav-item-cc active" href="assessment.html"><i class="bi bi-clipboard-check"></i> Career Assessment</a>
+    <a class="nav-item-cc" href="recommendation.html"><i class="bi bi-award"></i> Recommendation <span class="dot"></span></a>
+    <a class="nav-item-cc" href="history.html"><i class="bi bi-clock-history"></i> History</a>
+    <a class="nav-item-cc" href="profile.html"><i class="bi bi-person"></i> Profile</a>
+  </nav>
+  <div class="sidebar-footer"><a class="nav-item-cc" href="../index.html" style="color:#EF4444!important"><i class="bi bi-box-arrow-left" style="color:#EF4444"></i> Logout</a></div>
+</div>
+
+<div class="sidebar-main">
+  <div class="topbar">
+    <div><div class="fw-bold" style="font-size:1.05rem">Career Assessment</div><div class="text-secondary small">Complete all 4 steps to receive your personalized career recommendation.</div></div>
+    <div class="topbar-avatar">MS</div>
+  </div>
+
+  <div class="p-4" style="max-width:760px;margin:0 auto">
+    <!-- Progress card -->
+    <div class="card-cc p-4 mb-4">
+      <div class="d-flex justify-content-between mb-2">
+        <span class="small fw-semibold">Step <span id="step-current">1</span> of 4: <span class="text-indigo" id="step-name-display">Personal Information</span></span>
+        <span class="small text-secondary" id="step-pct-display">0% complete</span>
+      </div>
+      <div class="progress mb-4" style="height:6px;border-radius:99px">
+        <div class="progress-bar" id="wizard-progress" style="width:5%;background:var(--indigo);border-radius:99px;transition:width .4s ease"></div>
+      </div>
+      <div class="d-flex align-items-center" id="step-indicators"></div>
+    </div>
+
+    <!-- Wizard steps -->
+    <div class="card-cc p-4">
+      <!-- Step 1: Personal Info -->
+      <div class="wizard-step" id="ws-1">
+        <h5 class="fw-bold mb-1">Personal Information</h5>
+        <p class="text-secondary small mb-4">Provide your basic academic information to personalize your assessment.</p>
+        <div class="row g-3">
+          <div class="col-6"><label class="form-label small fw-medium" for="assessment-year">Year Level</label><select id="assessment-year" class="form-select" style="border-radius:10px;background:#F9FAFB"><option>1st Year</option><option>2nd Year</option><option selected>3rd Year</option><option>4th Year</option></select></div>
+          <div class="col-6"><label class="form-label small fw-medium" for="assessment-section">Section</label><select id="assessment-section" class="form-select" style="border-radius:10px;background:#F9FAFB"></select></div>
+          <div class="col-12"><label class="form-label small fw-medium" for="assessment-age">Age <span class="text-danger">*</span></label><input id="assessment-age" type="number" class="form-control" min="18" max="40" required style="border-radius:10px;background:#F9FAFB" /><div class="invalid-feedback">Enter an age between 18 and 40.</div></div>
+        </div>
+      </div>
+
+      <div class="wizard-step d-none" id="ws-2">
+        <h5 class="fw-bold mb-1">Analyze Your E-Portfolio</h5>
+        <p class="text-secondary small mb-4">Upload a text-based PDF, enter a public portfolio website link, or provide both. Your portfolio is analyzed to personalize the recommendation.</p>
+
+        <div class="mb-3">
+          <label for="portfolio_upload" class="form-label small fw-semibold">Select PDF File <span class="text-secondary fw-normal">(optional if using a website link)</span></label>
+          <input class="form-control" type="file" id="portfolio_upload" accept=".pdf,application/pdf" style="border-radius:10px;background:#F9FAFB">
+          <div class="invalid-feedback">Upload a PDF or enter a public portfolio URL to continue.</div>
+        </div>
+        <div class="mb-3">
+          <label for="portfolio_website" class="form-label small fw-semibold">Public E-Portfolio Website <span class="text-secondary fw-normal">(optional)</span></label>
+          <input class="form-control" type="url" id="portfolio_website" placeholder="https://your-portfolio.com" style="border-radius:10px;background:#F9FAFB">
+          <div class="form-text">The system analyzes public page text only. Private links cannot be accessed.</div>
+          <div id="portfolio-status" class="form-text mt-2"></div>
+        </div>
+      </div>
+
+      <!-- Analyzing Portfolio Animated Modal / Overlay -->
+      <div id="analyzing-modal" class="d-none">
+        <div class="analyzing-backdrop"></div>
+        <div class="analyzing-card">
+          <div class="analyzing-icon-box mb-3">
+            <div class="pulse-ring"></div>
+            <i class="bi bi-cpu fs-1 text-indigo"></i>
+          </div>
+          <h5 class="fw-bold mb-1" id="analyzing-title">Analyzing Your Portfolio</h5>
+          <p class="text-secondary small mb-4" id="analyzing-subtitle">Our NLP model is scanning and embedding your technical achievements...</p>
+          
+          <div class="progress mb-3" style="height:8px;border-radius:99px;background:#EEF2FF">
+            <div id="analyzing-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:15%;background:linear-gradient(90deg, #4F46E5, #7C3AED);border-radius:99px;transition:width 0.4s ease"></div>
+          </div>
+
+          <div class="analyzing-steps text-start">
+            <div class="analyzing-step" id="step-extract">
+              <span class="step-icon"><i class="bi bi-circle"></i></span>
+              <span class="step-text">Extracting readable text &amp; project descriptions</span>
+            </div>
+            <div class="analyzing-step" id="step-tokenize">
+              <span class="step-icon"><i class="bi bi-circle"></i></span>
+              <span class="step-text">Identifying technical skill keywords &amp; competencies</span>
+            </div>
+            <div class="analyzing-step" id="step-embeddings">
+              <span class="step-icon"><i class="bi bi-circle"></i></span>
+              <span class="step-text">Generating SBERT semantic vector embeddings</span>
+            </div>
+            <div class="analyzing-step" id="step-match">
+              <span class="step-icon"><i class="bi bi-circle"></i></span>
+              <span class="step-text">Calculating cosine similarity across 5 IT career tracks</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Academic -->
+      <div class="wizard-step d-none" id="ws-3">
+        <h5 class="fw-bold mb-1">Academic Information</h5>
+        <p class="text-secondary small mb-4">Provide your academic performance details to personalize your recommendation.</p>
+        <div class="mb-3"><label class="form-label small fw-medium" for="assessment-gwa">General Weighted Average (GWA)</label><input id="assessment-gwa" type="number" class="form-control" step="0.01" min="1" max="5" placeholder="e.g., 1.50" required style="border-radius:10px;background:#F9FAFB" /><div class="invalid-feedback">Enter your GWA from 1.00 to 5.00.</div><div class="form-text">Philippine grading: 1.0 (Excellent) to 5.0 (Failed)</div></div>
+        <div class="p-3 rounded-3" style="background:var(--indigo-light);border:1px solid #C7D2FE"><div class="d-flex align-items-center gap-2 mb-1"><i class="bi bi-info-circle text-indigo small"></i><span class="fw-semibold small text-indigo">Data Privacy Notice</span></div><p class="mb-0 small text-indigo" style="opacity:.85">Your academic information is used solely for career path recommendation and will not be shared beyond this system, in accordance with RA 10173.</p></div>
+      </div>
+
+      <!-- Step 4: Interests -->
+      <div class="wizard-step d-none" id="ws-4">
+        <h5 class="fw-bold mb-1">Career Interests</h5>
+        <p class="text-secondary small mb-4">Select your areas of interest, preferred career track, and work environment.</p>
+        <div class="mb-4"><label class="form-label small fw-semibold">Areas of Interest <span class="fw-normal text-secondary">(select all that apply)</span></label><div class="row g-2" id="interest-checkboxes"></div></div>
+        <div class="mb-4"><label class="form-label small fw-semibold" for="preferred-career">Preferred Career Track <span class="text-danger">*</span></label><select id="preferred-career" class="form-select" required style="border-radius:10px;background:#F9FAFB"><option value="" selected disabled>Select the IT path you want to explore</option><option>Web Development</option><option>Software Engineering</option><option>Cybersecurity</option><option>Data Science &amp; Analytics</option><option>Network Engineering</option></select><div class="form-text">This does not change your recommendation. It helps us show practical ways to strengthen your profile for the path you prefer.</div><div class="invalid-feedback">Select your preferred career track to continue.</div></div>
+        <div><label class="form-label small fw-semibold">Preferred Work Environment</label><select class="form-select" style="border-radius:10px;background:#F9FAFB"><option>Office-based (On-site)</option><option>Remote / Work from Home</option><option selected>Hybrid (Office + Remote)</option><option>Fieldwork / Client-facing</option><option>Laboratory / Technical Facility</option></select></div>
+      </div>
+
+      <!-- Nav buttons -->
+      <div class="d-flex justify-content-between align-items-center mt-4 pt-4 border-top">
+        <button class="btn d-flex align-items-center gap-1 fw-medium small" style="border:1px solid var(--border)" id="btn-prev" onclick="wizardPrev()"><i class="bi bi-chevron-left"></i> Previous</button>
+        <button class="btn btn-indigo d-flex align-items-center gap-2 fw-semibold" id="btn-next" onclick="wizardNext()">Next Step <i class="bi bi-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/student.js"></script>
+</body>
+</html>

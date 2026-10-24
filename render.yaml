@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: careercompass
+    runtime: python
+    buildCommand: pip install -r requirements.txt && python download_sbert_model.py
+    startCommand: gunicorn --workers 1 --timeout 120 app:app
+    envVars:
+      - key: CAREERCOMPASS_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: CAREERCOMPASS_SMTP_EMAIL
+        sync: false
+      - key: CAREERCOMPASS_SMTP_APP_PASSWORD
+        sync: false
+      - key: CAREERCOMPASS_SMTP_HOST
+        value: smtp.gmail.com
+      - key: CAREERCOMPASS_SMTP_PORT
+        value: "465"
