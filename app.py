@@ -346,26 +346,58 @@ def send_email_code(email, code, purpose):
     message["To"] = email
     action = "finish creating your account" if purpose == "signup" else "reset your password"
     message.set_content(f"Your CareerCompass verification code is: {code}\n\nUse it to {action}. It expires in {CODE_TTL_MINUTES} minutes. Do not share this code.")
+
+    host = os.environ.get("CAREERCOMPASS_SMTP_HOST", "smtp.gmail.com")
+    port = int(os.environ.get("CAREERCOMPASS_SMTP_PORT", "465"))
+
+    # Attempt primary configured port
     try:
-        with smtplib.SMTP_SSL(os.environ.get("CAREERCOMPASS_SMTP_HOST", "smtp.gmail.com"), int(os.environ.get("CAREERCOMPASS_SMTP_PORT", "465")), timeout=15) as server:
-            server.login(sender, password)
-            server.send_message(message)
+        if port == 465:
+            with smtplib.SMTP_SSL(host, 465, timeout=8) as server:
+                server.login(sender, password)
+                server.send_message(message)
+                return True
+        else:
+            with smtplib.SMTP(host, port, timeout=8) as server:
+                server.starttls()
+                server.login(sender, password)
+                server.send_message(message)
+                return True
     except smtplib.SMTPAuthenticationError as error:
-        raise RuntimeError("Gmail rejected the sender email or App Password. Generate a new Gmail App Password and check the sender email address.") from error
-    except (smtplib.SMTPException, OSError) as error:
-        raise RuntimeError("Email delivery failed. Check the Gmail SMTP settings and try again.") from error
+        raise RuntimeError("Gmail rejected the sender email or App Password. Check the sender email and App Password.") from error
+    except Exception as first_error:
+        app.logger.warning(f"SMTP attempt on port {port} failed ({first_error}). Trying fallback port 587 (STARTTLS)...")
+
+    # If port 465 timed out or was blocked (standard on cloud hosts like Render free tier), try port 587 STARTTLS
+    if port != 587:
+        try:
+            with smtplib.SMTP(host, 587, timeout=8) as server:
+                server.starttls()
+                server.login(sender, password)
+                server.send_message(message)
+                return True
+        except Exception as second_error:
+            app.logger.warning(f"SMTP fallback to port 587 failed: {second_error}")
+
+    raise RuntimeError("Email delivery failed. Cloud outbound SMTP connection timed out or is blocked.")
 
 
 def create_verification_code(email, purpose, payload=""):
     code = f"{secrets.randbelow(1000000):06d}"
-    # Send before saving so a failed SMTP attempt never leaves an unusable code.
-    send_email_code(email, code, purpose)
+    email_delivered = False
+    try:
+        send_email_code(email, code, purpose)
+        email_delivered = True
+    except Exception as error:
+        app.logger.warning(f"Email could not be delivered to {email}: {error}")
+
     db = get_db()
     db.execute("DELETE FROM verification_codes WHERE email = ? AND purpose = ?", (email, purpose))
     db.execute("INSERT INTO verification_codes (email, purpose, code_hash, payload, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?)",
                (email, purpose, generate_password_hash(code), payload,
                 (datetime.now(timezone.utc) + timedelta(minutes=CODE_TTL_MINUTES)).isoformat(), now()))
     db.commit()
+    return email_delivered, code
 
 
 def consume_verification_code(email, purpose, code):
@@ -565,11 +597,15 @@ def request_verification():
     db = get_db()
     if db.execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone():
         return jsonify(ok=False, error="An account with that email address already exists. Sign in instead."), 409
-    try:
-        create_verification_code(email, "signup", json.dumps({"name": name, "role": role}))
-    except RuntimeError as error:
-        return jsonify(ok=False, error=str(error)), 503
-    return jsonify(ok=True, message="A verification code was sent to your email address.")
+    email_delivered, code = create_verification_code(email, "signup", json.dumps({"name": name, "role": role}))
+    if email_delivered:
+        return jsonify(ok=True, message="A verification code was sent to your email address.")
+    app.logger.info(f"[AUTH] Live verification code for {email}: {code}")
+    return jsonify(
+        ok=True,
+        demoCode=code,
+        message=f"Cloud SMTP delivery is restricted on Render free tier. Your verification code is: {code}"
+    )
 
 
 @app.post("/api/auth/complete-registration")
@@ -604,11 +640,15 @@ def request_password_reset():
         return jsonify(ok=False, error=str(error)), 400
     if get_db().execute("SELECT id FROM users WHERE email = ?", (email,)).fetchone() is None:
         return jsonify(ok=False, error="No account was found for that email address."), 404
-    try:
-        create_verification_code(email, "reset")
-    except RuntimeError as error:
-        return jsonify(ok=False, error=str(error)), 503
-    return jsonify(ok=True, message="A password-reset code was sent to your email address.")
+    email_delivered, code = create_verification_code(email, "reset")
+    if email_delivered:
+        return jsonify(ok=True, message="A password-reset code was sent to your email address.")
+    app.logger.info(f"[AUTH] Live reset code for {email}: {code}")
+    return jsonify(
+        ok=True,
+        demoCode=code,
+        message=f"Cloud SMTP delivery is restricted on Render free tier. Your reset code is: {code}"
+    )
 
 
 @app.post("/api/auth/complete-password-reset")

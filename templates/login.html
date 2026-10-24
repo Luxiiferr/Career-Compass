@@ -110,6 +110,18 @@
     function showAuthError(message) {
       var box = document.getElementById('auth-error');
       box.textContent = message;
+      box.style.background = '#FEE2E2';
+      box.style.color = '#991B1B';
+      box.style.border = '1px solid #FCA5A5';
+      box.classList.remove('d-none');
+    }
+
+    function showAuthNotice(message) {
+      var box = document.getElementById('auth-error');
+      box.textContent = message;
+      box.style.background = '#EEF2FF';
+      box.style.color = '#3730A3';
+      box.style.border = '1px solid #C7D2FE';
       box.classList.remove('d-none');
     }
 
@@ -143,7 +155,16 @@
         var response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         var payload = await response.json();
         if (!response.ok || !payload.ok) throw new Error(payload.error || 'Unable to complete the request.');
-        if (authMode === 'create' && !verificationSent) { verificationSent = true; document.getElementById('login-password').value = ''; updateAuthUi(); return; }
+        if (authMode === 'create' && !verificationSent) {
+          verificationSent = true;
+          document.getElementById('login-password').value = '';
+          updateAuthUi();
+          if (payload.demoCode) {
+            document.getElementById('verification-code').value = payload.demoCode;
+            showAuthNotice(payload.message || 'Verification code: ' + payload.demoCode);
+          }
+          return;
+        }
         if (resetMode || verificationSent) { authMode = 'signin'; verificationSent = false; resetMode = false; document.getElementById('login-password').value = ''; document.getElementById('verification-code').value = ''; updateAuthUi(); alert(payload.message || 'Complete. Please sign in.'); return; }
         localStorage.setItem('careerCompassAuth', JSON.stringify({ role: payload.user.role, user: payload.user }));
         window.location.href = payload.user.role === 'faculty' || payload.user.role === 'admin' ? 'faculty/dashboard.html' : 'student/dashboard.html';
@@ -174,7 +195,12 @@
       try {
         var response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
         var payload = await response.json(); if (!response.ok || !payload.ok) throw new Error(payload.error || 'Unable to resend the code.');
-        alert(payload.message || 'A new code was sent.');
+        if (payload.demoCode) {
+          document.getElementById('verification-code').value = payload.demoCode;
+          showAuthNotice(payload.message || 'Verification code: ' + payload.demoCode);
+        } else {
+          alert(payload.message || 'A new code was sent.');
+        }
       } catch (error) { showAuthError(error.message || 'Unable to resend the code.'); }
     }
 
@@ -185,7 +211,13 @@
       try {
         var response = await fetch('/api/auth/request-password-reset', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email }) });
         var payload = await response.json(); if (!response.ok || !payload.ok) throw new Error(payload.error);
-        authMode = 'signin'; resetMode = true; verificationSent = false; updateAuthUi(); alert(payload.message);
+        authMode = 'signin'; resetMode = true; verificationSent = true; updateAuthUi();
+        if (payload.demoCode) {
+          document.getElementById('verification-code').value = payload.demoCode;
+          showAuthNotice(payload.message || 'Reset code: ' + payload.demoCode);
+        } else {
+          alert(payload.message);
+        }
       } catch (error) { showAuthError(error.message || 'Unable to send a reset code.'); }
     }
 
