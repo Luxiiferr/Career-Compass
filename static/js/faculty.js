@@ -71,6 +71,65 @@ function renderDashboardSummary(reports) {
   }
 }
 
+var reportsCurrentPage = 1;
+var reportsPerPage = 10;
+
+function printReportsPDF() {
+  window.print();
+}
+
+function exportReportsCSV() {
+  var reports = getReportData();
+  if (!reports || !reports.length) {
+    alert('No assessment records to export.');
+    return;
+  }
+  var headers = ['No.', 'Student Name', 'Year', 'Section', 'Recommended Career', 'Match Score (%)', 'Date', 'Status'];
+  var rows = reports.map(function(r, idx) {
+    return [
+      idx + 1,
+      '"' + (r.studentName || '').replace(/"/g, '""') + '"',
+      '"' + (r.year || '') + '"',
+      '"' + (r.section || '') + '"',
+      '"' + (r.career || '') + '"',
+      r.score || 0,
+      '"' + (r.date || '') + '"',
+      'Completed'
+    ].join(',');
+  });
+  var csvContent = 'data:text/csv;charset=utf-8,' + encodeURIComponent([headers.join(','), rows.join('\n')].join('\n'));
+  var link = document.createElement('a');
+  link.setAttribute('href', csvContent);
+  link.setAttribute('download', 'CareerCompass_Assessment_Reports_' + new Date().toISOString().slice(0, 10) + '.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function renderFacultyUser() {
+  var auth = getAuthUser();
+  var user = auth.user || {};
+  if (!user.name) return;
+  var name = user.name;
+  var dept = user.role === 'admin' ? 'System Administrator · CCS' : 'Faculty · CCIT';
+  var initials = user.initials || name.split(' ').map(function(s){return s[0];}).join('').slice(0, 2).toUpperCase();
+
+  document.querySelectorAll('.sidebar-user-faculty .fw-semibold').forEach(function(el) {
+    el.textContent = name;
+  });
+  document.querySelectorAll('.sidebar-user-faculty .text-secondary').forEach(function(el) {
+    el.textContent = dept;
+  });
+  document.querySelectorAll('.sidebar-avatar-faculty, .topbar-avatar').forEach(function(el) {
+    el.textContent = initials;
+  });
+}
+
+function changeReportsPage(page) {
+  reportsCurrentPage = page;
+  renderReports();
+}
+
 function renderReports() {
   var searchEl = document.getElementById('reports-search');
   var yearEl   = document.getElementById('reports-year');
@@ -78,24 +137,53 @@ function renderReports() {
   var y = yearEl   ? yearEl.value                 : '';
   var reports = getReportData();
   var filtered = reports.filter(function(r) {
-    return (!y || r.year === y) && (r.studentName.toLowerCase().includes(s) || r.career.toLowerCase().includes(s));
+    return (!y || r.year === y) && ((r.studentName || '').toLowerCase().includes(s) || (r.career || '').toLowerCase().includes(s));
   });
+
+  var totalPages = Math.ceil(filtered.length / reportsPerPage) || 1;
+  if (reportsCurrentPage > totalPages) reportsCurrentPage = totalPages;
+  if (reportsCurrentPage < 1) reportsCurrentPage = 1;
+
+  var startIndex = (reportsCurrentPage - 1) * reportsPerPage;
+  var pageItems = filtered.slice(startIndex, startIndex + reportsPerPage);
+
   var tbody = document.getElementById('reports-tbody');
-  if (!tbody) return;
-  tbody.innerHTML = filtered.map(function(r, i) {
-    var c = r.score >= 85 ? '#10B981' : r.score >= 70 ? 'var(--indigo)' : 'var(--amber)';
-    return '<tr>' +
-      '<td class="text-secondary" style="font-size:.75rem">' + String(i+1).padStart(3,'0') + '</td>' +
-      '<td><div class="d-flex align-items-center gap-2"><div class="sidebar-avatar" style="width:32px;height:32px;background:#EEF2FF;color:var(--indigo)">' + r.initials + '</div><span class="fw-medium">' + r.studentName + '</span></div></td>' +
-      '<td class="text-secondary">' + r.year + ' &middot; ' + r.section + '</td>' +
-      '<td><div class="d-flex align-items-center gap-2"><i class="bi bi-code-slash text-indigo" style="font-size:.8rem"></i>' + r.career + '</div></td>' +
-      '<td style="min-width:150px"><div class="d-flex align-items-center gap-2"><div class="skill-bar flex-grow-1"><div class="fill" style="width:' + r.score + '%;background:' + c + '"></div></div><span class="small fw-semibold">' + r.score + '%</span></div></td>' +
-      '<td class="text-secondary">' + r.date + '</td>' +
-      '<td><span class="badge-green">Completed</span></td>' +
-      '</tr>';
-  }).join('');
+  if (tbody) {
+    tbody.innerHTML = pageItems.length ? pageItems.map(function(r, i) {
+      var globalIndex = startIndex + i + 1;
+      var c = r.score >= 85 ? '#10B981' : r.score >= 70 ? 'var(--indigo)' : 'var(--amber)';
+      return '<tr>' +
+        '<td class="text-secondary" style="font-size:.75rem">' + String(globalIndex).padStart(3,'0') + '</td>' +
+        '<td><div class="d-flex align-items-center gap-2"><div class="sidebar-avatar" style="width:32px;height:32px;background:#EEF2FF;color:var(--indigo)">' + r.initials + '</div><span class="fw-medium">' + r.studentName + '</span></div></td>' +
+        '<td class="text-secondary">' + r.year + ' &middot; ' + r.section + '</td>' +
+        '<td><div class="d-flex align-items-center gap-2"><i class="bi bi-code-slash text-indigo" style="font-size:.8rem"></i>' + r.career + '</div></td>' +
+        '<td style="min-width:150px"><div class="d-flex align-items-center gap-2"><div class="skill-bar flex-grow-1"><div class="fill" style="width:' + r.score + '%;background:' + c + '"></div></div><span class="small fw-semibold">' + r.score + '%</span></div></td>' +
+        '<td class="text-secondary">' + r.date + '</td>' +
+        '<td><span class="badge-green">Completed</span></td>' +
+        '</tr>';
+    }).join('') : '<tr><td colspan="7" class="text-center text-secondary py-4">No matching assessments found.</td></tr>';
+  }
+
   var el = document.getElementById('reports-count');
-  if (el) el.textContent = 'Showing ' + filtered.length + ' of ' + reports.length + ' students';
+  if (el) el.textContent = 'Showing ' + (pageItems.length ? (startIndex + 1) + '–' + (startIndex + pageItems.length) : '0') + ' of ' + filtered.length + ' students' + (filtered.length !== reports.length ? ' (filtered from ' + reports.length + ')' : '');
+
+  var pageInfo = document.getElementById('reports-page-info');
+  if (pageInfo) pageInfo.textContent = 'Page ' + reportsCurrentPage + ' of ' + totalPages;
+
+  var paginationButtons = document.getElementById('reports-pagination-buttons');
+  if (paginationButtons) {
+    var btns = [];
+    if (totalPages > 1) {
+      btns.push('<button class="btn btn-sm" style="border:1px solid var(--border);border-radius:8px;font-size:.75rem" onclick="changeReportsPage(' + (reportsCurrentPage - 1) + ')"' + (reportsCurrentPage === 1 ? ' disabled' : '') + '><i class="bi bi-chevron-left"></i></button>');
+      for (var p = 1; p <= totalPages; p++) {
+        var isCurrent = p === reportsCurrentPage;
+        var style = isCurrent ? 'background:var(--indigo);color:#fff;border-radius:8px;font-weight:600' : 'border:1px solid var(--border);border-radius:8px;color:#6B7280;font-weight:600';
+        btns.push('<button class="btn btn-sm" style="width:32px;height:32px;' + style + ';font-size:.75rem" onclick="changeReportsPage(' + p + ')">' + p + '</button>');
+      }
+      btns.push('<button class="btn btn-sm" style="border:1px solid var(--border);border-radius:8px;font-size:.75rem" onclick="changeReportsPage(' + (reportsCurrentPage + 1) + ')"' + (reportsCurrentPage === totalPages ? ' disabled' : '') + '><i class="bi bi-chevron-right"></i></button>');
+    }
+    paginationButtons.innerHTML = btns.join('');
+  }
 
   var totalEl = document.getElementById('reports-total-students');
   if (totalEl) totalEl.textContent = reports.length;
@@ -254,6 +342,7 @@ function initCharts(reports) {
 
 /* ── Init on load ──────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', function() {
+  renderFacultyUser();
   fetchReportsRemote().then(function(remote) {
     window.facultyReports = remote || [];
     var reports = getReportData();

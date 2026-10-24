@@ -170,17 +170,23 @@ app.config.update(
 class DatabaseConnection:
     """Small compatibility wrapper for SQLite local development and PostgreSQL deployment."""
     def __init__(self):
+        self.is_postgres = False
         if USING_POSTGRES:
-            if psycopg is None:
-                raise RuntimeError("PostgreSQL is configured but psycopg is not installed. Run pip install -r requirements.txt.")
-            self.connection = psycopg.connect(DATABASE_URL, row_factory=dict_row)
-        else:
-            self.connection = sqlite3.connect(SQLITE_DATABASE)
-            self.connection.row_factory = sqlite3.Row
+            if psycopg is not None:
+                try:
+                    self.connection = psycopg.connect(DATABASE_URL, row_factory=dict_row)
+                    self.is_postgres = True
+                    return
+                except Exception as e:
+                    print(f"[Database] Notice: PostgreSQL connection unreachable ({e}). Using local SQLite database.")
+            else:
+                print("[Database] Notice: psycopg is not installed. Using local SQLite database.")
+        self.connection = sqlite3.connect(SQLITE_DATABASE)
+        self.connection.row_factory = sqlite3.Row
 
     def execute(self, query, params=()):
         # Existing queries use SQLite qmark parameters. Psycopg uses %s parameters.
-        if USING_POSTGRES:
+        if getattr(self, "is_postgres", False):
             query = query.replace("?", "%s")
         return self.connection.execute(query, params)
 
@@ -272,7 +278,7 @@ def init_db():
           note TEXT NOT NULL, created_at TEXT NOT NULL
         );
     """
-    for statement in (postgres_schema if USING_POSTGRES else sqlite_schema).split(";"):
+    for statement in (postgres_schema if getattr(db, "is_postgres", False) else sqlite_schema).split(";"):
         if statement.strip():
             db.execute(statement)
     admin = db.execute("SELECT id FROM users WHERE role = 'admin'").fetchone()
@@ -281,7 +287,31 @@ def init_db():
             "INSERT INTO users (name, username, email, password_hash, role, year, section, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             ("System Administrator", "admin@careercompass.local", "admin@careercompass.local", generate_password_hash("admin123"), "admin", "Admin", "System", now()),
         )
+    guidance = db.execute("SELECT id FROM users WHERE email = 'guidance@careercompass.local'").fetchone()
+    if guidance is None:
+        db.execute(
+            "INSERT INTO users (name, username, email, password_hash, role, year, section, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            ("Guidance Counselor", "guidance@careercompass.local", "guidance@careercompass.local", generate_password_hash("guidance123"), "faculty", "Guidance", "Office", now()),
+        )
+    faculty = db.execute("SELECT id FROM users WHERE email = 'faculty@careercompass.local'").fetchone()
+    if faculty is None:
+        db.execute(
+            "INSERT INTO users (name, username, email, password_hash, role, year, section, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            ("Faculty Member", "faculty@careercompass.local", "faculty@careercompass.local", generate_password_hash("faculty123"), "faculty", "Faculty", "CCIT", now()),
+        )
     db.commit()
+
+    # Automatically seed Chapter 3 benchmark assessments if table is empty (e.g. fresh live PostgreSQL deployment on Render)
+    try:
+        count_row = db.execute("SELECT count(*) as cnt FROM assessments").fetchone()
+        cnt = count_row["cnt"] if isinstance(count_row, dict) or hasattr(count_row, "keys") else count_row[0]
+        if cnt == 0:
+            from create_ch3_dataset import seed_dataset_into_db
+            seed_dataset_into_db(db)
+            print("[Database] Live deployment detected with 0 assessments: Auto-seeded 60 Chapter 3 benchmark assessments.")
+    except Exception as e:
+        print(f"[Database] Notice during assessment auto-seed: {e}")
+
     db.close()
 
 
