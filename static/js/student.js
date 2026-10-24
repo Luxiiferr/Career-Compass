@@ -309,15 +309,16 @@ async function analyzePortfolio() {
 
   try {
     var response = await fetch('/api/portfolio/analyze', { method: 'POST', body: data });
-    var payload = await response.json();
+    var contentType = response.headers.get('content-type') || '';
+    var payload = contentType.indexOf('application/json') >= 0 ? await response.json() : null;
     
     // Clear mock timers if response came back quickly
     clearTimeout(stepTimer1);
     clearTimeout(stepTimer2);
     clearTimeout(stepTimer3);
 
-    if (!response.ok || !payload.ok) {
-      throw new Error(payload.error || 'Portfolio analysis failed.');
+    if (!response.ok || !payload || !payload.ok) {
+      throw new Error((payload && payload.error) || 'The server could not analyze this portfolio. Please try again, or use a text-based PDF portfolio.');
     }
 
     // Finish all steps with checks

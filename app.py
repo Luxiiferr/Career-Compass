@@ -15,6 +15,7 @@ from urllib.parse import urlparse
 from flask import Flask, abort, g, jsonify, render_template, request, session, send_file
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import HTTPException
 
 try:
     import fitz  # PyMuPDF
@@ -868,6 +869,20 @@ def analyze_portfolio(user):
 
 @app.errorhandler(413)
 def too_large(_error): return jsonify(ok=False, error="The PDF must be 5 MB or smaller."), 413
+
+
+@app.errorhandler(Exception)
+def api_error(error):
+    """Keep API failures machine-readable; detailed diagnostics remain in server logs."""
+    if request.path.startswith("/api/"):
+        if isinstance(error, HTTPException):
+            return jsonify(ok=False, error=error.description), error.code
+        app.logger.exception("Unhandled API error on %s", request.path)
+        return jsonify(ok=False, error="The server could not complete this request. Please try again, or use a text-based PDF portfolio."), 500
+    if isinstance(error, HTTPException):
+        return error
+    app.logger.exception("Unhandled page error on %s", request.path)
+    return "Internal Server Error", 500
 
 
 init_db()
