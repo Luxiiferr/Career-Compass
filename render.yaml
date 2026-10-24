@@ -2,7 +2,7 @@ services:
   - type: web
     name: careercompass
     runtime: python
-    buildCommand: pip install -r requirements.txt && python download_sbert_model.py
+    buildCommand: pip install -r requirements.txt
     startCommand: gunicorn --workers 1 --timeout 120 app:app
     envVars:
       - key: CAREERCOMPASS_SECRET_KEY
@@ -17,3 +17,7 @@ services:
         value: smtp.gmail.com
       - key: CAREERCOMPASS_SMTP_PORT
         value: "465"
+      # Keeps the app within the memory limit of small Render instances.
+      # The built-in weighted career-skill analysis remains available.
+      - key: CAREERCOMPASS_ENABLE_SEMANTIC_MODEL
+        value: "false"

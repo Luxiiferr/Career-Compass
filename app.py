@@ -57,6 +57,7 @@ def load_local_env():
 load_local_env()
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 USING_POSTGRES = DATABASE_URL.startswith(("postgres://", "postgresql://"))
+ENABLE_SEMANTIC_MODEL = os.environ.get("CAREERCOMPASS_ENABLE_SEMANTIC_MODEL", "false").lower() in {"1", "true", "yes"}
 NON_PORTFOLIO_HOSTS = {
     "youtube.com", "youtu.be", "facebook.com", "instagram.com", "tiktok.com",
     "x.com", "twitter.com", "linkedin.com", "google.com", "drive.google.com",
@@ -464,14 +465,17 @@ def portfolio_recommendation(text):
         raise ValueError("The portfolio does not contain enough readable text to analyze.")
     names = list(CAREER_PROFILES)
     scores, method = None, "weighted skill matching"
-    try:
-        from sentence_transformers import SentenceTransformer, util
-        model = SentenceTransformer("all-MiniLM-L6-v2", local_files_only=True)
-        embeddings = model.encode([compact_text] + [CAREER_PROFILES[name] for name in names], convert_to_tensor=True)
-        similarity = util.cos_sim(embeddings[0], embeddings[1:])[0].tolist()
-        scores = [max(0, round(value * 100)) for value in similarity]
-        method = "semantic portfolio matching"
-    except Exception:
+    if ENABLE_SEMANTIC_MODEL:
+        try:
+            from sentence_transformers import SentenceTransformer, util
+            model = SentenceTransformer("all-MiniLM-L6-v2", local_files_only=True)
+            embeddings = model.encode([compact_text] + [CAREER_PROFILES[name] for name in names], convert_to_tensor=True)
+            similarity = util.cos_sim(embeddings[0], embeddings[1:])[0].tolist()
+            scores = [max(0, round(value * 100)) for value in similarity]
+            method = "semantic portfolio matching"
+        except Exception:
+            app.logger.warning("Semantic model unavailable; using weighted skill matching.", exc_info=True)
+    if scores is None:
         # Weighted skill-group matching: each skill category has a weight.
         # This captures any phrasing a student might use, not just exact keywords.
         lowered = compact_text.lower()
